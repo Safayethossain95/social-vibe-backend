@@ -52,12 +52,10 @@ const UserSchema = new mongoose.Schema(
       default: false,
     },
     desc: {
-      type: String,
-      max: 50,
+      type: String
     },
     relationship: {
-      type: Number,
-      enum: [1, 2, 3],
+      type: String,
     },
   },
   { timestamps: true }

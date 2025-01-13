@@ -3,16 +3,16 @@ const post_route = express();
 
 const bodyParser = require("body-parser");
 
-const {
-  cartGet,
-  cartPost,
-  cartEdit,
-  cartDelete,
-  foodPost,
-  foodGet,
-  cartDecrement,
-} = require("../controller/aboutPage/aboutPageController");
-const { userPost } = require("../controller/mainControllers/mainController");
+// const {
+//   cartGet,
+//   cartPost,
+//   cartEdit,
+//   cartDelete,
+//   foodPost,
+//   foodGet,
+//   cartDecrement,
+// } = require("../controller/aboutPage/aboutPageController");
+const { userPost, editUser, userGet } = require("../controller/mainControllers/mainController");
 
 post_route.use(bodyParser.json());
 post_route.use(bodyParser.urlencoded({ extended: true }));
@@ -30,6 +30,9 @@ post_route.use(bodyParser.urlencoded({ extended: true }));
 // post_route.post("/cartedit/:id", cartEdit);
 // post_route.delete("/cartdelete/:id", cartDelete);
 
+ post_route.get("/userget/:id", userGet);
  post_route.post("/userpost", userPost);
+ post_route.post("/useredit", editUser);
+ post_route.post("/newsfeedpost", editUser);
 
 module.exports = post_route;
