@@ -13,6 +13,7 @@ const bodyParser = require("body-parser");
 //   cartDecrement,
 // } = require("../controller/aboutPage/aboutPageController");
 const { userPost, editUser, userGet } = require("../controller/mainControllers/mainController");
+const { loginController, signupController } = require("../controller/mainControllers/authController");
 
 post_route.use(bodyParser.json());
 post_route.use(bodyParser.urlencoded({ extended: true }));
@@ -30,6 +31,9 @@ post_route.use(bodyParser.urlencoded({ extended: true }));
 // post_route.post("/cartedit/:id", cartEdit);
 // post_route.delete("/cartdelete/:id", cartDelete);
 
+ 
+ post_route.post("/login", loginController);
+ post_route.post("/signup", signupController);
  post_route.get("/userget/:id", userGet);
  post_route.post("/userpost", userPost);
  post_route.post("/useredit", editUser);

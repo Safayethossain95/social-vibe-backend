@@ -4,19 +4,16 @@ const mongoose = require('mongoose');
 
 const userGet = async (req, res) => {
   try {
-    const { id } = req.params; // Assuming the user ID is passed as a route parameter
+    const { id } = req.params; 
 
-    // Convert the id to an ObjectId
-    const userId = mongoose.Types.ObjectId(id);
+    const userId = new mongoose.Types.ObjectId(id);
 
-    // Find the user by _id
     const user = await UserModel.findById(userId);
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Return the found user
     res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ error: error.message || "Failed to fetch user" });
@@ -37,6 +34,12 @@ const userPost = async (req, res) => {
       desc,
       relationship
     } = req.body;
+
+    // Check if the email already exists
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User Already Exists" });
+    }
 
     // Create a new user document
     const newUser = new UserModel({
@@ -59,7 +62,7 @@ const userPost = async (req, res) => {
     res.status(500).json({ error: "Failed to create user" });
   }
 };
-const mongoose = require('mongoose');
+
 
 const editUser = async (req, res) => {
   try {

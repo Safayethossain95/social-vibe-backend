@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema(
     },
     fullname: {
       type: String,
-      required: true,
+      required: false,
     },
     profilePicture: {
       type: String,
@@ -46,10 +46,6 @@ const UserSchema = new mongoose.Schema(
         },
       ],
       default: [],
-    },
-    isAdmin: {
-      type: Boolean,
-      default: false,
     },
     desc: {
       type: String
