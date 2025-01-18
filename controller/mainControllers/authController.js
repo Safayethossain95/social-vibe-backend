@@ -21,16 +21,17 @@ const loginController = async (req, res) => {
     // Generate a JWT token
     const token = jwt.sign(
       { id: user._id, email: user.email, isAdmin: user.isAdmin },
-      process.env.JWT_SECRET, // Ensure you set this in your environment variables
+      process.env.JWT_SECRET, // Ensure this is set in your environment variables
       { expiresIn: "1d" } // Token expiration
     );
-    res.cookie("token", token, {
-        httpOnly: true, // Ensures the cookie is not accessible via JavaScript
-        secure: process.env.NODE_ENV === "production" ? true : false, // Use secure cookies in production
-        sameSite: "none", // Prevents CSRF attacks
-        maxAge: 24 * 60 * 60 * 1000, // Cookie expiration (1 day)
-      });
-
+    
+    const cookieOptions = {
+      httpOnly: true, // Secure the cookie (not accessible via JavaScript)
+      secure: false, // Set to `true` in production if using HTTPS
+      expires: new Date(Date.now() + 30 * 60 * 1000), // Cookie expiration (30 minutes)
+    };
+    
+    res.cookie('token', token, cookieOptions); 
     res.status(200).json({
       message: "Login successful",
       user: {
@@ -79,6 +80,31 @@ const signupController = async (req, res) => {
       res.status(500).json({ error: "Failed to register user" });
     }
   };
+const authController = async (req, res) => {
+  const token = req.cookies.token;
+  console.log(token) // Access the 'token' cookie
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' }); // No token, return Unauthorized
+  }
+
+  // Verify the token
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Unauthorized' }); // Invalid token
+    }
+    
+    // Token is valid, proceed with user data
+    res.status(200).json({ message: 'User authenticated', user: decoded });
+  });
+  };
+const logoutController = async (req, res) => {
+    try {
+      res.clearCookie('token', { path: '/' }); // Clear the cookie
+      res.status(200).json({data:true,message:"Logout successful"});
+    } catch (error) {
+      res.status(500).json({ error: "Failed to logout" });
+    }
+  };
   
 
-module.exports = {loginController,signupController};
+module.exports = {loginController,signupController,authController,logoutController};
