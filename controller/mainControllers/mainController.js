@@ -1,3 +1,4 @@
+const Post = require("../../models/PostModel");
 const UserModel = require("../../models/UserModel");
 
 const mongoose = require('mongoose');
@@ -103,10 +104,96 @@ const editUser = async (req, res) => {
   }
 };
 
+const createPost = async (req, res) => {
+  try {
+    const { userId, subject, text } = req.body;
+
+    // Check if the user exists
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(400).json({ message: "User does not exist" });
+    }
+
+    // Create a new post
+    const newPost = new Post({
+      userId,
+      subject,
+      text,
+    });
+
+    // Save the new post to the database
+    const savedPost = await newPost.save();
+    res.status(201).json(savedPost);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create post" });
+  }
+};
+const fetchOwnPosts = async (req, res) => {
+  try {
+    const { id } = req.params; // Extract userId from request parameters
+    const matchedid = new mongoose.Types.ObjectId(id)
+    
+    const user = await UserModel.findById(matchedid);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userPosts = await Post.find({ userId: matchedid });
+
+    if (userPosts.length === 0) {
+      return res.status(200).json({posts:[],user:user});
+    }
+
+    res.status(200).json({posts:userPosts,user:user});
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+};
+const fetchNewsFeed = async (req, res) => {
+  try {
+    const { id } = req.params; // Extract userId from request parameters
+    const matchedId = new mongoose.Types.ObjectId(id);
+
+    // Check if user exists
+    const user = await UserModel.findById(matchedId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Fetch posts
+    const userPosts = await Post.find({});
+    if (userPosts.length === 0) {
+      return res.status(200).json({ posts: [], user });
+    }
+
+    // Enrich posts with user details
+    const enrichedPosts = await Promise.all(
+      userPosts.map(async (post) => {
+        const postUser = await UserModel.findById(post.userId, "profilePicture fullname email");
+        return {
+          ...post._doc, // Spread post details
+          profilePicture: postUser ? postUser.profilePicture : null,
+          fullname: postUser ? postUser.fullname : null,
+          email: postUser ? postUser.email : null,
+        };
+      })
+    );
+
+    res.status(200).json({ posts: enrichedPosts, user });
+  } catch (error) {
+    console.error(error); // Log error for debugging
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+};
+
 
 
   module.exports = {
     userGet,
     userPost,
-    editUser
+    editUser,
+    createPost,
+    fetchOwnPosts,
+    fetchNewsFeed
   };

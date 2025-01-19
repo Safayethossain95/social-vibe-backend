@@ -12,7 +12,7 @@ const bodyParser = require("body-parser");
 //   foodGet,
 //   cartDecrement,
 // } = require("../controller/aboutPage/aboutPageController");
-const { userPost, editUser, userGet } = require("../controller/mainControllers/mainController");
+const { userPost, editUser, userGet, createPost, fetchOwnPosts, fetchNewsFeed } = require("../controller/mainControllers/mainController");
 const { loginController, signupController, authController, logoutController } = require("../controller/mainControllers/authController");
 
 post_route.use(bodyParser.json());
@@ -36,6 +36,12 @@ post_route.use(bodyParser.urlencoded({ extended: true }));
  post_route.post("/logout", logoutController);
  post_route.post("/login", loginController);
  post_route.post("/signup", signupController);
+
+ post_route.post("/createpost", createPost);
+ post_route.get("/fetchownposts/:id", fetchOwnPosts);
+ post_route.get("/fetchnewsfeed/:id", fetchNewsFeed);
+
+
  post_route.get("/userget/:id", userGet);
  post_route.post("/userpost", userPost);
  post_route.post("/useredit", editUser);

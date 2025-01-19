@@ -15,11 +15,7 @@ const postSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-  },
-  image: {
-    type: String,
-    trim: true,
-  },
+  }
 }, {
   timestamps: true, // Adds createdAt and updatedAt fields
 });

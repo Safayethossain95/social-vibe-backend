@@ -99,7 +99,16 @@ const authController = async (req, res) => {
   };
 const logoutController = async (req, res) => {
     try {
-      res.clearCookie('token', { path: '/' }); // Clear the cookie
+      const cookieOptions = {
+        expires: new Date(0),  // Expire immediately
+        httpOnly: true,        // Match how it was set
+        secure: false,         // Set to `true` if using HTTPS
+        path: '/',             // Match the cookie path
+      };
+    
+      console.log('Before removal:', req.cookies.token);
+      res.clearCookie('token', cookieOptions); // Properly clear the cookie
+      console.log('After removal:', req.cookies.token); 
       res.status(200).json({data:true,message:"Logout successful"});
     } catch (error) {
       res.status(500).json({ error: "Failed to logout" });
