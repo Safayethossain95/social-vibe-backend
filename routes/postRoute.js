@@ -12,7 +12,7 @@ const bodyParser = require("body-parser");
 //   foodGet,
 //   cartDecrement,
 // } = require("../controller/aboutPage/aboutPageController");
-const { userPost, editUser, userGet, createPost, fetchOwnPosts, fetchNewsFeed } = require("../controller/mainControllers/mainController");
+const { userPost, editUser, userGet, createPost, fetchOwnPosts, fetchNewsFeed, uploadImage, fetchAllUsers, pushFollower } = require("../controller/mainControllers/mainController");
 const { loginController, signupController, authController, logoutController } = require("../controller/mainControllers/authController");
 
 post_route.use(bodyParser.json());
@@ -42,9 +42,15 @@ post_route.use(bodyParser.urlencoded({ extended: true }));
  post_route.get("/fetchnewsfeed/:id", fetchNewsFeed);
 
 
+ post_route.get("/getallusers/:id", fetchAllUsers);
  post_route.get("/userget/:id", userGet);
  post_route.post("/userpost", userPost);
  post_route.post("/useredit", editUser);
  post_route.post("/newsfeedpost", editUser);
+ 
+ 
+ post_route.post("/upload-image", uploadImage);
+ post_route.post("/push-follower/:id", pushFollower);
+ 
 
 module.exports = post_route;

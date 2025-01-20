@@ -6,9 +6,16 @@ const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const app = express();
 const path = require("path");
+const fileUpload = require("express-fileupload");
+app.use(
+  fileUpload({
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+  })
+);
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: "50mb" })); // Increase limit for JSON
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 const cors = require("cors");
 
 app.use(
@@ -43,7 +50,7 @@ connectDB();
 const post_route = require("./routes/postRoute");
 
 app.use("/api", post_route);
-
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.listen(8000, function () {
   console.log("Server is running");
 });
