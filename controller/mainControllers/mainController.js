@@ -154,54 +154,108 @@ const fetchOwnPosts = async (req, res) => {
 };
 const fetchAllUsers = async (req, res) => {
   try {
-    const { id } = req.params; 
-    const users = await UserModel.find({ _id: { $ne: id } });
-
-    if (!users) {
-      return res.status(404).json({ message: "No user found" });
+    
+      const { id } = req.params; 
+      const myId = new mongoose.Types.ObjectId(id)// Extract the user ID from the request parameters
+  
+      // Fetch the requesting user's data to access the following array
+      const requestingUser = await UserModel.findById(myId);
+      if (!requestingUser) {
+        return res.status(404).json({ message: "Requesting user not found" });
+      }
+  
+      // Extract IDs from the following array
+      const excludedIds = requestingUser.following.map(f => f.userId);
+  
+      // Fetch all users excluding the requesting user and the users in the following array
+      const users = await UserModel.find({
+        _id: { $nin: [myId, ...excludedIds] }, // Exclude both the requesting user and the followed users
+      });
+  
+      if (!users || users.length === 0) {
+        return res.status(404).json({ message: "No users found" });
+      }
+  
+      res.status(200).json({ data: users });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch users" });
     }
-
-   
-
-    res.status(200).json({data:users});
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch posts" });
-  }
-};
+}
 const pushFollower = async (req, res) => {
   try {
-    const { id } = req.params; // ID of the user to add a follower to
-    const { followerId } = req.body; // ID of the user who will follow
+    const { meid, id } = req.params; // `meid` is the user who follows, `id` is the user being followed
+  
+    if (!meid || !id) {
+      return res.status(400).json({ message: "Both user ID and follower ID are required" });
+    }
+  
+    // Check if both users exist
+    const [userExists, targetUserExists] = await Promise.all([
+      UserModel.findById(meid),
+      UserModel.findById(id),
+    ]);
+  
+    if (!userExists || !targetUserExists) {
+      return res.status(404).json({ message: "One or both users not found" });
+    }
+  
+    // Update both `following` and `followers` arrays simultaneously
+    const [updatedUser, updatedUser2] = await Promise.all([
+      UserModel.findOneAndUpdate(
+        { _id: meid, "following.userId": { $ne: id } }, // Ensure `id` is not already in `following`
+        { $push: { following: { userId: id } } },
+        { new: true }
+      ),
+      UserModel.findOneAndUpdate(
+        { _id: id, "followers.userId": { $ne: meid } }, // Ensure `meid` is not already in `followers`
+        { $push: { followers: { userId: meid } } },
+        { new: true }
+      ),
+    ]);
+  
+    if (!updatedUser || !updatedUser2) {
+      return res.status(404).json({ message: "One or both updates failed" });
+    }
+  
+    res.status(200).json({
+      message: "Users updated successfully",
+      userFollowing: updatedUser,
+      userFollowed: updatedUser2,
+    });
+  } catch (error) {
+    console.error("Error updating users:", error);
+    res.status(500).json({ error: "Failed to update users" });
+  }
+  
+};
+const getFollowersById = async (req, res) => {
+  try {
+    const { id } = req.params; // Extract the user ID from the request parameters
 
-    if (!followerId) {
-      return res.status(400).json({ message: "Follower ID is required" });
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
     }
 
-    // Check if the follower exists
-    const followerExists = await UserModel.findById(followerId);
-    if (!followerExists) {
-      return res.status(404).json({ message: "Follower user not found" });
-    }
+    // Fetch the user by ID and retrieve their followers, populate the userId inside followers array
+    const user = await UserModel.findById(id)
+      .select("followers")
+      .populate("followers.userId", "fullname profilePicture");
 
-    // Add the follower to the user's followers array
-    const updatedUser = await UserModel.findByIdAndUpdate(
-      id,
-      {
-        $push: { following: { userId: followerId } },
-      },
-      { new: true }
-    );
-
-    if (!updatedUser) {
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ message: "Follower added successfully", user: updatedUser });
+    res.status(200).json({
+      message: "Followers fetched successfully",
+      followers: user.followers,
+    });
   } catch (error) {
-    console.error("Error pushing follower:", error);
-    res.status(500).json({ error: "Failed to add follower" });
+    console.error("Error fetching followers:", error);
+    res.status(500).json({ error: "Failed to fetch followers" });
   }
 };
+
+
 
 const fetchNewsFeed = async (req, res) => {
   try {
@@ -303,5 +357,6 @@ const uploadImage = async (req, res) => {
     fetchOwnPosts,
     fetchNewsFeed,
     uploadImage,
-    pushFollower
+    pushFollower,
+    getFollowersById
   };

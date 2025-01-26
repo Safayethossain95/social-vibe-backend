@@ -12,7 +12,7 @@ const bodyParser = require("body-parser");
 //   foodGet,
 //   cartDecrement,
 // } = require("../controller/aboutPage/aboutPageController");
-const { userPost, editUser, userGet, createPost, fetchOwnPosts, fetchNewsFeed, uploadImage, fetchAllUsers, pushFollower } = require("../controller/mainControllers/mainController");
+const { userPost, editUser, userGet, createPost, fetchOwnPosts, fetchNewsFeed, uploadImage, fetchAllUsers, pushFollower, getFollowersById } = require("../controller/mainControllers/mainController");
 const { loginController, signupController, authController, logoutController } = require("../controller/mainControllers/authController");
 
 post_route.use(bodyParser.json());
@@ -50,7 +50,8 @@ post_route.use(bodyParser.urlencoded({ extended: true }));
  
  
  post_route.post("/upload-image", uploadImage);
- post_route.post("/push-follower/:id", pushFollower);
+ post_route.post("/push-follower/:meid/:id", pushFollower);
+ post_route.get("/get-followers/:id", getFollowersById);
  
 
 module.exports = post_route;
