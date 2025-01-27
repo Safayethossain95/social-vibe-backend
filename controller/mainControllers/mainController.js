@@ -231,28 +231,72 @@ const pushFollower = async (req, res) => {
 const getFollowersById = async (req, res) => {
   try {
     const { id } = req.params; // Extract the user ID from the request parameters
-
+  
     if (!id) {
       return res.status(400).json({ message: "User ID is required" });
     }
-
-    // Fetch the user by ID and retrieve their followers, populate the userId inside followers array
-    const user = await UserModel.findById(id)
-      .select("followers")
-      .populate("followers.userId", "fullname profilePicture");
-
+  
+    // Fetch the user by ID to get the followers array
+    const user = await UserModel.findById(id).select("followers");
+  
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
+  
+    // Extract all userIds from the followers array
+    const userIds = user.followers.map((follower) => follower.userId);
+  
+    // Fetch details of all users whose IDs are in userIds
+    const followersDetails = await UserModel.find(
+      { _id: { $in: userIds } }
+    );
+  
     res.status(200).json({
       message: "Followers fetched successfully",
-      followers: user.followers,
+      followers: followersDetails,
     });
   } catch (error) {
     console.error("Error fetching followers:", error);
     res.status(500).json({ error: "Failed to fetch followers" });
   }
+  
+  
+};
+const getFollowingById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    // Ensure the ID is valid
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid User ID format" });
+    }
+
+    // Fetch the user and populate the 'following' field with all details
+    const user = await UserModel.findById(id).populate("following");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const userIds = user.following.map((followingsingle) => followingsingle.userId);
+  
+    // Fetch details of all users whose IDs are in userIds
+    const followersDetails = await UserModel.find(
+      { _id: { $in: userIds } }
+    );
+    res.status(200).json({
+      message: "Following fetched successfully",
+      following: followersDetails, // Contains full details of each followed user
+    });
+  } catch (error) {
+    console.error(`Error fetching following for user ${id}:`, error.message);
+    res.status(500).json({ error: "Failed to fetch following" });
+  }
+  
+  
 };
 
 
@@ -358,5 +402,6 @@ const uploadImage = async (req, res) => {
     fetchNewsFeed,
     uploadImage,
     pushFollower,
-    getFollowersById
+    getFollowersById,
+    getFollowingById
   };
